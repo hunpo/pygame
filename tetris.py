@@ -2,7 +2,7 @@ import pygame as pg
 import sys
 from time import sleep
 
-moving = 0
+
 x, y = 20, 12
 grid = [[0 for b in range(y)] for a in range(x)]   # 20行*12列个格子，20*20的格子之间的间隙是5
 BLACK = (0, 0, 0)
@@ -35,11 +35,11 @@ def fall():
         pg.draw.rect(screen, WHITE, (col*25, row*25, 20, 20))  # 下落
         pg.display.update()
         row, col = handle_move(row, col)
-        if number == 100:  # 控制下落的速度
+        if number == 50:  # 控制下落的速度
             number = 0
-            print("row:", row)
-            print("col：", col)
-            print("Grid:", grid[row+1][col])
+            # print("row:", row)
+            # print("col：", col)
+            # print("Grid:", grid[row+1][col])
             if grid[row+1][col] == 1:  # 下行有，堆积
                 row = heap_up(row, col)  # 堆积
                 erase(row)
@@ -84,7 +84,9 @@ def draw_ground():
 
 
 def handle_move(row, col):
+    moving = "None"
     for event in pg.event.get():
+        moving = "none"
         if event.type == pg.QUIT:
             pg.quit()
             quit()
@@ -102,7 +104,8 @@ def handle_move(row, col):
                 moving = "down"
                 print("Down arrow key has been pressed.")
         else:
-            moving = "hello"
+            moving = "None"
+    if moving != "None":
         pg.draw.rect(screen, BLACK, (col*25, row*25, 20, 20))  # 清除
         pg.display.update()
         if (moving == "left") and col > 1:  # 防止撞到左墙
@@ -143,6 +146,23 @@ def erase(row):
         grid[row][col] = 0   # 重置状态
         col+=1
     pg.display.update()
+    if clear_line == 1 :
+      drop_down(row)  # 上面的都落下来
+
+def drop_down(row):
+    while row-1>=0:
+        col =1
+        while  col<11 :
+            if grid[row-1][col] == 1:
+                pg.draw.rect(screen, WHITE, (col*25, row*25, 20, 20)) 
+                grid[row][col] = 1
+                pg.display.update()
+                pg.draw.rect(screen, BLACK, (col*25, (row-1)*25, 20, 20))
+                grid[row-1][col] = 0   
+                pg.display.update()
+            col+=1
+        row -=1
+
 
 
 if __name__ == '__main__':
