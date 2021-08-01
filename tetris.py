@@ -30,30 +30,38 @@ def main():
 def fall():
     row = 0     # 代表行从0开始第5个格子
     col = 5  # 代表列  从0开始第5列格子
+    row1=0
+    col1 =6
     number = 0
     while 1:
-        pg.draw.rect(screen, WHITE, (col*25, row*25, 20, 20))  # 下落
-        pg.display.update()
-        row, col = handle_move(row, col)
-        if number == 50:  # 控制下落的速度
+        draw_square(col,row,WHITE)     # 下落
+        draw_square(col1,row1,WHITE)
+        row, col,row1,col1 = handle_move(row, col,row1,col1)
+        if number == 800:  # 控制下落的速度
             number = 0
-            # print("row:", row)
-            # print("col：", col)
-            # print("Grid:", grid[row+1][col])
-            if grid[row+1][col] == 1:  # 下行有，堆积
+            print("row:", row)
+            print("col：", col)
+            print("Grid:", grid[row+1][col])
+            if grid[row+1][col] == 1 or grid[row1+1][col1] == 1:  # 下行有，堆积
                 row = heap_up(row, col)  # 堆积
+                row = heap_up(row1, col1)  # 堆积
                 erase(row)
+                erase(row1)
                 row =0   #从0行的头开始
+                row1=0
             else:
-                pg.draw.rect(screen, WHITE, (col*25, row*25, 20, 20))  # 下落
-                pg.display.update()
-                # sleep(1)
-                pg.draw.rect(screen, BLACK, (col*25, row*25, 20, 20))  # 清除
-                pg.display.update()
+                draw_square(col,row,WHITE)
+                draw_square(col,row,BLACK)
+                draw_square(col1,row1,WHITE)
+                draw_square(col1,row1,BLACK)
                 row = row+1
+                row1 = row1+1
         else:
             number = number + 1
 
+def draw_square(col,row,color):
+    pg.draw.rect(screen, color, (col*25, row*25, 20, 20))  # 下落
+    pg.display.update()
 
 def draw_wall():
     y = 0  # 代表列的格子个数
@@ -83,7 +91,7 @@ def draw_ground():
     pg.display.update()
 
 
-def handle_move(row, col):
+def handle_move(row, col,row1,col1):
     moving = "None"
     for event in pg.event.get():
         moving = "none"
@@ -106,19 +114,24 @@ def handle_move(row, col):
         else:
             moving = "None"
     if moving != "None":
-        pg.draw.rect(screen, BLACK, (col*25, row*25, 20, 20))  # 清除
+        draw_square(col,row,BLACK)
+        draw_square(col1,row1,BLACK)
         pg.display.update()
-        if (moving == "left") and col > 1:  # 防止撞到左墙
+        if (moving == "left") and grid[row][col-1] == 0:  # 防止撞到左墙以及左侧无方块
             col -= 1
-        if (moving == "right") and col < 10:  # 防止撞到右墙
+            col1 -= 1
+        if (moving == "right") and grid[row1][col1+1] == 0:  # 防止撞到右墙以及右侧无方块
             col += 1
+            col1 += 1
         if moving == "up":
             row -= 1
-        if moving == "down":
-            col += 1
-        pg.draw.rect(screen, WHITE, (col*25, row*25, 20, 20))  # 下落
-        pg.display.update()
-    return row, col
+            row1 -= 1
+        if moving == "down" and grid[row+1][col] == 0 and grid[row1+1][col1] == 0 :  # 防止出底界
+            row += 1
+            row1 += 1
+        draw_square(col,row,WHITE)
+        draw_square(col1,row1,WHITE)
+    return row, col,row1,col1
 
 
 def heap_up(row, col):
