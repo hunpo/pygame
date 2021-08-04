@@ -7,6 +7,7 @@ from time import sleep
 x, y = 20, 12
 grid = [[0 for b in range(y)] for a in range(x)]   # 20行*12列个格子，20*20的格子之间的间隙是5
 BLACK = (0, 0, 0)
+RED = (255,0,0)
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 
@@ -55,8 +56,8 @@ def move(row,col,rotate):
     row1,col1 = calculate_position(row,col,rotate)
     print("row1",row1)
     print("col1",col1)
-    draw_square(col,row,WHITE)
-    draw_square(col1,row1,WHITE)
+    draw_square(col,row,RED)
+    draw_square(col1,row1,RED)
     pg.display.update()
     draw_square(col,row,BLACK)   # 黑色是下一次循环更新
     draw_square(col1,row1,BLACK)
@@ -128,16 +129,14 @@ def drop_down(row):
 def calculate_position(row,col,rotate):
     row1 = row
     col1 = col
-    if rotate == 0:
+    if rotate%4 == 0:
        col1= col+1 
-    if rotate == 1:
+    if rotate%4 == 1:
         row1 =row+1
-    if rotate==2:
+    if rotate%4==2:
         col1=col-1
-    if rotate ==3:
+    if rotate%4 ==3:
         row1=row-1
-    if rotate == 4:
-        rotate =0
     return row1,col1
 
 def fall():
@@ -180,7 +179,7 @@ def fall():
         print("horizontal_distance",horizontal_distance)
         print("rotate_distance",rotate_distance)   
         fall_number += 1
-        if fall_number ==50:
+        if fall_number ==150:
             vertical_distance = 1
             fall_number = 0
         col = col + horizontal_distance
