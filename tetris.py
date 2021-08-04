@@ -52,24 +52,22 @@ def draw_wall_ground():
         col = col+1
     pg.display.update()
 
-def move(row,col,rotate):
-    row1,col1 = calculate_position(row,col,rotate)
+def move(row,col,rotate,category):
+    row1,col1,row2,col2 = calculate_position(row,col,rotate,category)
     print("row1",row1)
     print("col1",col1)
     draw_square(col,row,RED)
     draw_square(col1,row1,RED)
+    draw_square(col2,row2,RED)
     pg.display.update()
     draw_square(col,row,BLACK)   # 黑色是下一次循环更新
     draw_square(col1,row1,BLACK)
+    draw_square(col2,row2,BLACK)
 
 
-def overlap(row,col,rotate):
-    row1,col1 = calculate_position(row,col,rotate)
-    print("row",row)
-    print("col",col)
-    print("row1",row1)
-    print("col1",col1)
-    if grid[row][col] == 1 or grid[row1][col1] == 1:
+def overlap(row,col,rotate,category):
+    row1,col1,row2,col2= calculate_position(row,col,rotate,category)
+    if grid[row][col] == 1 or grid[row1][col1] == 1 or grid[row2][col2] == 1:
        return 1
     else:
        return 0
@@ -104,13 +102,12 @@ def erase_row():
             drop_down(row)  # 上面的都落下来
         row+=1
 
-def heap_up_erase(row,col,rotate):
-    row1,col1 = calculate_position(row,col,rotate)
+def heap_up_erase(row,col,rotate,category):
+    row1,col1,row2,col2 = calculate_position(row,col,rotate,category)
     heap_up(row, col)
     heap_up(row1, col1)
+    heap_up(row2, col2)
     erase_row()
-
-
     
 
 def drop_down(row):
@@ -126,23 +123,61 @@ def drop_down(row):
             col+=1
         row -=1
 
-def calculate_position(row,col,rotate):
+def calculate_position(row,col,rotate,category):
     row1 = row
     col1 = col
-    if rotate%4 == 0:
-       col1= col+1 
-    if rotate%4 == 1:
-        row1 =row+1
-    if rotate%4==2:
-        col1=col-1
-    if rotate%4 ==3:
-        row1=row-1
-    return row1,col1
+    row2 = row
+    col2 = col
+    if category == 0 :
+        if rotate%4 == 0:
+           row1 =row
+           col1= col-1
+           row2 = row
+           col2= col+ 1
+        if rotate%4 == 1:
+            row1 = row -1
+            col1= col
+            row2 = row+1
+            col2= col
+        if rotate%4==2:
+            row1 = row 
+            col1= col+1
+            row2 = row
+            col2= col- 1
+        if rotate%4 ==3:
+            row1 = row +1
+            col1= col
+            row2 = row-1
+            col2= col
+        return row1,col1,row2,col2
+    if category == 1 :
+        if rotate%4 == 0:
+           row1 =row-1
+           col1= col
+           row2 = row
+           col2= col+ 1
+        if rotate%4 == 1:
+            row1 = row
+            col1= col+ 1
+            row2 = row+1
+            col2= col
+        if rotate%4==2:
+            row1 = row +1
+            col1= col
+            row2 = row
+            col2= col- 1
+        if rotate%4 ==3:
+            row1 = row 
+            col1= col-1
+            row2 = row-1
+            col2= col
+        return row1,col1,row2,col2
 
 def fall():
     rotate = 0
-    row = 0     # 代表行从0开始第5个格子
+    row = 1     # 代表行从0开始第5个格子
     col = 5  # 代表列  从0开始第5列格子
+    category = 0  # 旋转的种类
     fall_number = 0
     while 1:
         horizontal_distance = 0
@@ -176,8 +211,6 @@ def fall():
                     horizontal_distance   += 1
                 if moving == "up":
                     rotate_distance += 1
-        print("horizontal_distance",horizontal_distance)
-        print("rotate_distance",rotate_distance)   
         fall_number += 1
         if fall_number ==150:
             vertical_distance = 1
@@ -185,18 +218,19 @@ def fall():
         col = col + horizontal_distance
         row = row + vertical_distance
         rotate = rotate +rotate_distance
-        if overlap(row,col,rotate):   # 
+        if overlap(row,col,rotate,category):   # 
             col = col - horizontal_distance
             row = row - vertical_distance
             rotate = rotate - rotate_distance
             if vertical_distance>0 and horizontal_distance ==0: # If 重叠 Then 堆积
-                heap_up_erase(row, col,rotate)
+                heap_up_erase(row, col,rotate,category)
                 rotate = 0
                 row = 0  
                 col = 5  
+                category = 1-category
         print("row",row)
         print("col",col)
-        move(row,col,rotate)
+        move(row,col,rotate,category)
 
 
   
