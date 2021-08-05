@@ -7,13 +7,14 @@ from time import sleep
 x, y = 20, 12
 grid = [[0 for b in range(y)] for a in range(x)]   # 20行*12列个格子，20*20的格子之间的间隙是5
 BLACK = (0, 0, 0)
-RED = (255,0,0)
+RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
+data = [[0, -1, 0, 1], [-1, 0, 1, 0], [0, 1, 0, -1], [1, 0, -1, 0],
+        [-1, 0, 0, 1], [0, 1, 1, 0], [1, 0, 0, -1], [0, -1, -1, 0]]
 
 pg.init()
 screen = pg.display.set_mode((640, 500))
-
 
 
 def main():
@@ -26,9 +27,11 @@ def main():
                 pg.quit()
                 sys.exit()
 
-def draw_square(col,row,color):
+
+def draw_square(col, row, color):
     pg.draw.rect(screen, color, (col*25, row*25, 20, 20))  # 下落
     # pg.display.update()
+
 
 def draw_wall_ground():
     y = 0  # 代表列的格子个数
@@ -46,31 +49,33 @@ def draw_wall_ground():
     pg.display.update()
     row = 19  # 一共0~19层共20层格子，上面有19层
     col = 0
-    while col <=11:
+    while col <= 11:
         pg.draw.rect(screen, WHITE, (col*25, row*25, 20, 20))  # 底墙
         grid[row][col] = 1
         col = col+1
     pg.display.update()
 
-def move(row,col,rotate,category):
-    row1,col1,row2,col2 = calculate_position(row,col,rotate,category)
-    print("row1",row1)
-    print("col1",col1)
-    draw_square(col,row,RED)
-    draw_square(col1,row1,RED)
-    draw_square(col2,row2,RED)
+
+def move(row, col, rotate, category):
+    row1, col1, row2, col2 = calculate_position(row, col, rotate, category)
+    print("row1", row1)
+    print("col1", col1)
+    draw_square(col, row, RED)
+    draw_square(col1, row1, RED)
+    draw_square(col2, row2, RED)
     pg.display.update()
-    draw_square(col,row,BLACK)   # 黑色是下一次循环更新
-    draw_square(col1,row1,BLACK)
-    draw_square(col2,row2,BLACK)
+    draw_square(col, row, BLACK)   # 黑色是下一次循环更新
+    draw_square(col1, row1, BLACK)
+    draw_square(col2, row2, BLACK)
 
 
-def overlap(row,col,rotate,category):
-    row1,col1,row2,col2= calculate_position(row,col,rotate,category)
+def overlap(row, col, rotate, category):
+    row1, col1, row2, col2 = calculate_position(row, col, rotate, category)
     if grid[row][col] == 1 or grid[row1][col1] == 1 or grid[row2][col2] == 1:
-       return 1
+        return 1
     else:
-       return 0
+        return 0
+
 
 def heap_up(row, col):
     if row == 0:
@@ -78,100 +83,61 @@ def heap_up(row, col):
         pg.quit()
         sys.exit()
     else:
-        draw_square(col,row,WHITE)  # 下落
+        draw_square(col, row, WHITE)  # 下落
         pg.display.update()
         grid[row][col] = 1
 
+
 def erase_row():
-    row = 0   #从第0行开始
+    row = 0  # 从第0行开始
     print("begin erase")
-    while row< 19:
+    while row < 19:
         clear_line = 1
-        col =1
-        while  col <= 10:
+        col = 1
+        while col <= 10:
             if grid[row][col] == 0:
                 clear_line = 0
             col += 1
-        print("clear line",clear_line)
-        if clear_line ==1:
-            col =1
-            while  col <= 10:
+        print("clear line", clear_line)
+        if clear_line == 1:
+            col = 1
+            while col <= 10:
                 grid[row][col] = 0   # 重置状态
-                draw_square(col,row,BLACK)
-                col+=1
+                draw_square(col, row, BLACK)
+                col += 1
             drop_down(row)  # 上面的都落下来
-        row+=1
+        row += 1
 
-def heap_up_erase(row,col,rotate,category):
-    row1,col1,row2,col2 = calculate_position(row,col,rotate,category)
+
+def heap_up_erase(row, col, rotate, category):
+    row1, col1, row2, col2 = calculate_position(row, col, rotate, category)
     heap_up(row, col)
     heap_up(row1, col1)
     heap_up(row2, col2)
     erase_row()
-    
+
 
 def drop_down(row):
-    row=row-1 # 删除行的上一行
-    while row>=0:
-        col =1
-        while  col<=10 :
+    row = row-1  # 删除行的上一行
+    while row >= 0:
+        col = 1
+        while col <= 10:
             if grid[row][col] == 1:
-                draw_square(col,row,BLACK)
-                grid[row][col] = 0   
+                draw_square(col, row, BLACK)
+                grid[row][col] = 0
                 pg.display.update()
-                heap_up(row+1, col)  #堆积到删除行
-            col+=1
-        row -=1
+                heap_up(row+1, col)  # 堆积到删除行
+            col += 1
+        row -= 1
 
-def calculate_position(row,col,rotate,category):
-    row1 = row
-    col1 = col
-    row2 = row
-    col2 = col
-    if category == 0 :
-        if rotate%4 == 0:
-           row1 =row
-           col1= col-1
-           row2 = row
-           col2= col+ 1
-        if rotate%4 == 1:
-            row1 = row -1
-            col1= col
-            row2 = row+1
-            col2= col
-        if rotate%4==2:
-            row1 = row 
-            col1= col+1
-            row2 = row
-            col2= col- 1
-        if rotate%4 ==3:
-            row1 = row +1
-            col1= col
-            row2 = row-1
-            col2= col
-        return row1,col1,row2,col2
-    if category == 1 :
-        if rotate%4 == 0:
-           row1 =row-1
-           col1= col
-           row2 = row
-           col2= col+ 1
-        if rotate%4 == 1:
-            row1 = row
-            col1= col+ 1
-            row2 = row+1
-            col2= col
-        if rotate%4==2:
-            row1 = row +1
-            col1= col
-            row2 = row
-            col2= col- 1
-        if rotate%4 ==3:
-            row1 = row 
-            col1= col-1
-            row2 = row-1
-            col2= col
-        return row1,col1,row2,col2
+
+def calculate_position(row, col, rotate, category):
+    row1 = row+data[category*4+rotate%4][0]
+    col1 = col+data[category*4+rotate%4][1]
+    row2 = row+data[category*4+rotate%4][2]
+    col2 = col+data[category*4+rotate%4][3]
+    return row1, col1, row2, col2
+
 
 def fall():
     rotate = 0
@@ -205,34 +171,33 @@ def fall():
             else:
                 moving = "None"
             if moving != "None":
-                if moving == "left":  
-                    horizontal_distance  -= 1
-                if moving == "right":  
-                    horizontal_distance   += 1
+                if moving == "left":
+                    horizontal_distance -= 1
+                if moving == "right":
+                    horizontal_distance += 1
                 if moving == "up":
                     rotate_distance += 1
         fall_number += 1
-        if fall_number ==150:
+        if fall_number == 150:
             vertical_distance = 1
             fall_number = 0
         col = col + horizontal_distance
         row = row + vertical_distance
-        rotate = rotate +rotate_distance
-        if overlap(row,col,rotate,category):   # 
+        rotate = rotate + rotate_distance
+        if overlap(row, col, rotate, category):   #
             col = col - horizontal_distance
             row = row - vertical_distance
             rotate = rotate - rotate_distance
-            if vertical_distance>0 and horizontal_distance ==0: # If 重叠 Then 堆积
-                heap_up_erase(row, col,rotate,category)
+            if vertical_distance > 0 and horizontal_distance == 0:  # If 重叠 Then 堆积
+                heap_up_erase(row, col, rotate, category)
                 rotate = 0
-                row = 0  
-                col = 5  
+                row = 0
+                col = 5
                 category = 1-category
-        print("row",row)
-        print("col",col)
-        move(row,col,rotate,category)
+        print("row", row)
+        print("col", col)
+        move(row, col, rotate, category)
 
 
-  
 if __name__ == '__main__':
     main()
