@@ -10,8 +10,13 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
-data = [[0, -1, 0, 1], [-1, 0, 1, 0], [0, 1, 0, -1], [1, 0, -1, 0],
-        [-1, 0, 0, 1], [0, 1, 1, 0], [1, 0, 0, -1], [0, -1, -1, 0]]
+data = [[0, -1, 0, 1, 0, 2],
+        [-1, -1, 0, -1, 0, 1],
+        [0, -1, -1, 0, 0, 1],
+        [0, -1, -1, 1, 0, 1],
+        [0, -1, 1, 0, 1, 1],
+        [0, 1, 1, 0, 1, 1],
+        [0, 1, 1, -1, 1, 0]]
 
 pg.init()
 screen = pg.display.set_mode((640, 500))
@@ -57,21 +62,25 @@ def draw_wall_ground():
 
 
 def move(row, col, rotate, category):
-    row1, col1, row2, col2 = calculate_position(row, col, rotate, category)
+    row1, col1, row2, col2, row3, col3 = calculate_position(
+        row, col, rotate, category)
     print("row1", row1)
     print("col1", col1)
     draw_square(col, row, RED)
     draw_square(col1, row1, RED)
     draw_square(col2, row2, RED)
+    draw_square(col3, row3, RED)
     pg.display.update()
     draw_square(col, row, BLACK)   # 黑色是下一次循环更新
     draw_square(col1, row1, BLACK)
     draw_square(col2, row2, BLACK)
+    draw_square(col3, row3, BLACK)
 
 
 def overlap(row, col, rotate, category):
-    row1, col1, row2, col2 = calculate_position(row, col, rotate, category)
-    if grid[row][col] == 1 or grid[row1][col1] == 1 or grid[row2][col2] == 1:
+    row1, col1, row2, col2, row3, col3 = calculate_position(
+        row, col, rotate, category)
+    if grid[row][col] == 1 or grid[row1][col1] == 1 or grid[row2][col2] == 1 or grid[row3][col3] == 1:
         return 1
     else:
         return 0
@@ -110,10 +119,12 @@ def erase_row():
 
 
 def heap_up_erase(row, col, rotate, category):
-    row1, col1, row2, col2 = calculate_position(row, col, rotate, category)
+    row1, col1, row2, col2, row3, col3 = calculate_position(
+        row, col, rotate, category)
     heap_up(row, col)
     heap_up(row1, col1)
     heap_up(row2, col2)
+    heap_up(row3, col3)
     erase_row()
 
 
@@ -131,19 +142,33 @@ def drop_down(row):
         row -= 1
 
 
-def calculate_position(row, col, rotate, category):
-    row1 = row+data[category*4+rotate%4][0]
-    col1 = col+data[category*4+rotate%4][1]
-    row2 = row+data[category*4+rotate%4][2]
-    col2 = col+data[category*4+rotate%4][3]
-    return row1, col1, row2, col2
+def calculate_position(row, col, rotate, category): #row,col 中心值
+    i = 0
+    list = []
+    while i < 3:   # 出去一对基值，剩下的变化量是3对，每对2个,共6个
+        ref_row = data[category][i*2]
+        ref_col = data[category][i*2+1]
+        rotate_count = 0
+        while rotate_count < rotate: #旋转90度时，行列互换，列取负值
+            # 替换
+            a = ref_row  # a用于过渡
+            ref_row = ref_col
+            ref_col = a
+            # 正负颠倒
+            ref_col = -ref_col
+            rotate_count += 1
+        list.append(row+ref_row)
+        list.append(col+ref_col)
+        i += 1
+    print(list)
+    return(list)  # 返回3对，六个
 
 
 def fall():
     rotate = 0
     row = 1     # 代表行从0开始第5个格子
     col = 5  # 代表列  从0开始第5列格子
-    category = 0  # 旋转的种类
+    category = 0  # 旋转的种类,四个方块有7种
     fall_number = 0
     while 1:
         horizontal_distance = 0
@@ -193,7 +218,9 @@ def fall():
                 rotate = 0
                 row = 0
                 col = 5
-                category = 1-category
+                category += 1
+                if category > 6:  # 四个方块最多7种类型
+                    category = 0
         print("row", row)
         print("col", col)
         move(row, col, rotate, category)
